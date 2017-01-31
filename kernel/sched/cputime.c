@@ -45,6 +45,7 @@ void disable_sched_clock_irqtime(void)
 void irqtime_account_irq(struct task_struct *curr)
 {
 	struct irqtime *irqtime = this_cpu_ptr(&cpu_irqtime);
+	u64 *cpustat = kcpustat_this_cpu->cpustat;
 	s64 delta;
 	int cpu;
 	u64 wallclock;
@@ -65,12 +66,13 @@ void irqtime_account_irq(struct task_struct *curr)
 	 * in that case, so as not to confuse scheduler with a special task
 	 * that do not consume any time, but still wants to run.
 	 */
-	if (hardirq_count())
-		irqtime->hardirq_time += delta;
-	else if (in_serving_softirq() && curr != this_cpu_ksoftirqd())
-		irqtime->softirq_time += delta;
-	else
-		account = false;
+	if (hardirq_count()) {
+		cpustat[CPUTIME_IRQ] += delta;
+		irqtime->tick_delta += delta;
+	} else if (in_serving_softirq() && curr != this_cpu_ksoftirqd()) {
+		cpustat[CPUTIME_SOFTIRQ] += delta;
+		irqtime->tick_delta += delta;
+	}
 
 	u64_stats_update_end(&irqtime->sync);
 
@@ -81,44 +83,23 @@ void irqtime_account_irq(struct task_struct *curr)
 }
 EXPORT_SYMBOL_GPL(irqtime_account_irq);
 
-static cputime_t irqtime_account_update(u64 irqtime, int idx, cputime_t maxtime)
+static cputime_t irqtime_tick_accounted(cputime_t maxtime)
 {
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
-	u64 base = cpustat[idx];
-	cputime_t irq_cputime;
+	struct irqtime *irqtime = this_cpu_ptr(&cpu_irqtime);
+	cputime_t delta;
 
-	irq_cputime = nsecs_to_cputime64(irqtime - cpustat[idx]);
-	irq_cputime = min(irq_cputime, maxtime);
-	cpustat[idx] += cputime_to_nsecs(irq_cputime);
+	delta = nsecs_to_cputime(irqtime->tick_delta);
+	delta = min(delta, maxtime);
+	irqtime->tick_delta -= cputime_to_nsecs(delta);
 
-	if (idx == CPUTIME_SOFTIRQ)
-		kcpustat_this_cpu->softirq_no_ksoftirqd += irq_cputime;
-
-	return irq_cputime;
-}
-
-static cputime_t irqtime_account_hi_update(cputime_t maxtime)
-{
-	return irqtime_account_update(__this_cpu_read(cpu_irqtime.hardirq_time),
-				      CPUTIME_IRQ, maxtime);
-}
-
-static cputime_t irqtime_account_si_update(cputime_t maxtime)
-{
-	return irqtime_account_update(__this_cpu_read(cpu_irqtime.softirq_time),
-				      CPUTIME_SOFTIRQ, maxtime);
+	return delta;
 }
 
 #else /* CONFIG_IRQ_TIME_ACCOUNTING */
 
 #define sched_clock_irqtime	(0)
 
-static cputime_t irqtime_account_hi_update(cputime_t dummy)
-{
-	return 0;
-}
-
-static cputime_t irqtime_account_si_update(cputime_t dummy)
+static cputime_t irqtime_tick_accounted(cputime_t dummy)
 {
 	return 0;
 }
@@ -314,10 +295,7 @@ static inline cputime_t account_other_time(cputime_t max)
 	accounted = steal_account_process_time(max);
 
 	if (accounted < max)
-		accounted += irqtime_account_hi_update(max - accounted);
-
-	if (accounted < max)
-		accounted += irqtime_account_si_update(max - accounted);
+		accounted += irqtime_tick_accounted(max - accounted);
 
 	return accounted;
 }
