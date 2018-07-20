@@ -228,6 +228,11 @@ static inline bool system_uses_ttbr0_pan(void)
 	return IS_ENABLED(CONFIG_ARM64_SW_TTBR0_PAN) &&
 		!cpus_have_cap(ARM64_HAS_PAN);
 }
+#define ARM64_SSBD_UNKNOWN		-1
+#define ARM64_SSBD_FORCE_DISABLE	0
+#define ARM64_SSBD_KERNEL		1
+#define ARM64_SSBD_FORCE_ENABLE		2
+#define ARM64_SSBD_MITIGATED		3
 
 #endif /* __ASSEMBLY__ */
 
