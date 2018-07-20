@@ -216,6 +216,16 @@ static inline bool system_uses_ttbr0_pan(void)
 		!cpus_have_cap(ARM64_HAS_PAN);
 }
 
+static inline int arm64_get_ssbd_state(void)
+{
+#ifdef CONFIG_ARM64_SSBD
+	extern int ssbd_state;
+	return ssbd_state;
+#else
+	return ARM64_SSBD_UNKNOWN;
+#endif
+}
+
 #endif /* __ASSEMBLY__ */
 
 #endif
