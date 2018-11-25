@@ -18,7 +18,7 @@ include $(srctree)/arch/arm64/boot/dts/Makefile
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
-targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo
+targets := Image Image.$(KBUILD_COMPRESS_SUFFIX)
 
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES))
 ifneq ($(DTB_NAMES),)
@@ -42,35 +42,16 @@ rtic_mp.dtb: vmlinux FORCE
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 
-$(obj)/Image.bz2: $(obj)/Image FORCE
-	$(call if_changed,bzip2)
+$(obj)/Image.$(KBUILD_COMPRESS_SUFFIX): $(obj)/Image FORCE
+	$(call if_changed,$(KBUILD_COMPRESS_CMD))
 
-$(obj)/Image-dtb-hdr: $(obj)/Image FORCE
-	echo -n 'UNCOMPRESSED_IMG' > $@ && \
-	$(call size_append, $(filter-out FORCE,$^)) >> $@
-
-$(obj)/Image-dtb: $(obj)/Image-dtb-hdr $(obj)/Image $(DTB_OBJS) FORCE
-	$(call if_changed,cat)
-
-$(obj)/Image.gz: $(obj)/Image FORCE
-	$(call if_changed,gzip)
-
-$(obj)/Image.lz4: $(obj)/Image FORCE
-	$(call if_changed,lz4)
-
-$(obj)/Image.lzma: $(obj)/Image FORCE
-	$(call if_changed,lzma)
-
-$(obj)/Image.lzo: $(obj)/Image FORCE
-	$(call if_changed,lzo)
-
-$(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
+$(obj)/Image.$(KBUILD_COMPRESS_SUFFIX)-dtb: $(obj)/Image.$(KBUILD_COMPRESS_SUFFIX) $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
 
 install:
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
 	$(obj)/Image System.map "$(INSTALL_PATH)"
 
-zinstall:
+zinstall: $(obj)/Image.$(KBUILD_COMPRESS_SUFFIX)
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
-	$(obj)/Image.gz System.map "$(INSTALL_PATH)"
+	$(obj)/Image.$(KBUILD_COMPRESS_SUFFIX) System.map "$(INSTALL_PATH)"
