@@ -31,13 +31,13 @@
 
 #include "ani_global.h"
 
-#ifdef TRACE_RECORD
-
 #define MAC_TRACE_GET_MODULE_ID(data) ((data >> 8) & 0xff)
 #define MAC_TRACE_GET_MSG_ID(data)       (data & 0xffff)
 
 #define eLOG_NODROP_MISSED_BEACON_SCENARIO 0
 #define eLOG_PROC_DEAUTH_FRAME_SCENARIO 1
+
+#ifdef TRACE_RECORD
 
 void mac_trace(tpAniSirGlobal pMac, uint8_t code, uint16_t session,
 	       uint32_t data);

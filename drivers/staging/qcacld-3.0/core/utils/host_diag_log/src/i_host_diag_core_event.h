@@ -139,6 +139,7 @@ static inline void qdf_wow_wakeup_host_event(uint8_t wow_wakeup_cause)
 {
 	return;
 }
+
 #endif /* FEATURE_WLAN_DIAG_SUPPORT */
 #ifdef __cplusplus
 }

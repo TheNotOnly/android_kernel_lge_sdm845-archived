@@ -6724,6 +6724,7 @@ static void hdd_cfg_print_mws_coex(hdd_context_t *hdd_ctx)
  */
 static void hdd_cfg_print_action_oui(hdd_context_t *hdd_ctx)
 {
+#ifdef WLAN_DEBUG
 	struct hdd_config *config = hdd_ctx->config;
 
 	hdd_debug("Name = [%s] value = [%u]",
@@ -6754,6 +6755,7 @@ static void hdd_cfg_print_action_oui(hdd_context_t *hdd_ctx)
 		CFG_ACTION_OUI_CONNECT_1X1_WITH_1_CHAIN_NAME,
 		config->action_oui_connect_1x1_with_1_chain);
 
+#endif
 }
 
 /**
