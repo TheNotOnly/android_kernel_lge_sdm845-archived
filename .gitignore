@@ -123,3 +123,5 @@ kernel/configs/android-*.cfg
 # Managed by platform/vendor/opensource/audio-kernel git
 #
 techpack/audio/
+
+out
