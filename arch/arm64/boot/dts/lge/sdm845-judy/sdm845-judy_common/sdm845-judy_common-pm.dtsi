@@ -557,9 +557,6 @@
 		lge,usbid-pullup-kohm = <200>;		// Pull-up resistance
 	};
 
-	smb2_vbus: qcom,smb2-vbus {
-		regulator-name = "smb2-vbus";
-	};
 };
 
 &vendor {
