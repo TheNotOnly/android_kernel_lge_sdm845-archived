@@ -33,7 +33,7 @@ case $option in
 
 	3)
 	echo "Please enter your password:"
-	read pw
+	read -s pw
 	./clean.sh
 	./defconfig.sh
 	./make.sh
@@ -41,7 +41,7 @@ case $option in
 	cp out/arch/arm64/boot/Image.gz-dtb AIK-Linux/split_img/boot.img-zImage
 	cd AIK-Linux
 	echo $pw | sudo -S ./repackimg.sh
-	rm split-img/boot.img-zImage
+	rm split_img/boot.img-zImage
 	mv image-new.img ../releases/boot-$version.img
 	;;
 
