@@ -124,3 +124,5 @@ kernel/configs/android-*.cfg
 techpack/audio/
 
 out
+
+AIK-Linux
