@@ -19,6 +19,10 @@ echo $CROSS_COMPILE
 version="$(./kernelversion.sh | grep -v make)"
 echo "Kernel Version is ${version}"
 
+if [[ ! -e releases ]]; then
+	mkdir releases
+fi
+
 case $option in
 
 	1)
