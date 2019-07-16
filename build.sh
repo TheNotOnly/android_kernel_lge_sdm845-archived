@@ -1,5 +1,8 @@
 #!/bin/bash
 
+if [ -z $1 ] && [ -z $2 ]
+then
+
 echo "Choose options:"
 echo "1: clean working tree"
 echo "2: compile"
@@ -13,6 +16,13 @@ echo ""
 
 read -p "Please specify number of cores: " -e -i 5 cores
 echo ""
+
+else
+
+option=$1
+cores=$2
+
+fi
 
 echo "Setting up working environment"
 source ./setenv.sh
@@ -72,3 +82,4 @@ case $option in
 	rm Image.gz-dtb
 	;;
 esac
+
