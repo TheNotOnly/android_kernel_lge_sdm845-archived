@@ -1,3 +1,2 @@
 #!/bin/bash
-
-make O=out -j36
+make O=out -j$1
