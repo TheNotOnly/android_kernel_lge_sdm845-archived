@@ -17,7 +17,6 @@
  */
 
 #include <linux/atomic.h>
-#include <linux/device.h>
 #include <linux/err.h>
 #include <linux/file.h>
 #include <linux/freezer.h>
@@ -408,8 +407,7 @@ static void ion_handle_get(struct ion_handle *handle)
 }
 
 /* Must hold the client lock */
-static struct ion_handle *ion_handle_get_check_overflow(
-					struct ion_handle *handle)
+static struct ion_handle* ion_handle_get_check_overflow(struct ion_handle *handle)
 {
 	if (atomic_read(&handle->ref.refcount) + 1 == 0)
 		return ERR_PTR(-EOVERFLOW);
@@ -1540,6 +1538,148 @@ static int ion_sync_for_device(struct ion_client *client, int fd)
 			       buffer->sg_table->nents, DMA_BIDIRECTIONAL);
 	dma_buf_put(dmabuf);
 	return 0;
+}
+
+/* fix up the cases where the ioctl direction bits are incorrect */
+static unsigned int ion_ioctl_dir(unsigned int cmd)
+{
+	switch (cmd) {
+	case ION_IOC_SYNC:
+	case ION_IOC_FREE:
+	case ION_IOC_CUSTOM:
+		return _IOC_WRITE;
+	default:
+		return _IOC_DIR(cmd);
+	}
+}
+
+static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	struct ion_client *client = filp->private_data;
+	struct ion_device *dev = client->dev;
+	struct ion_handle *cleanup_handle = NULL;
+	int ret = 0;
+	unsigned int dir;
+
+	union {
+		struct ion_fd_data fd;
+		struct ion_allocation_data allocation;
+		struct ion_handle_data handle;
+		struct ion_custom_data custom;
+	} data;
+
+	dir = ion_ioctl_dir(cmd);
+
+	if (_IOC_SIZE(cmd) > sizeof(data))
+		return -EINVAL;
+
+	if (dir & _IOC_WRITE)
+		if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
+			return -EFAULT;
+
+	switch (cmd) {
+	case ION_IOC_ALLOC:
+	{
+		struct ion_handle *handle;
+
+		handle = __ion_alloc(client, data.allocation.len,
+				     data.allocation.align,
+				     data.allocation.heap_id_mask,
+				     data.allocation.flags, true);
+		if (IS_ERR(handle))
+			return PTR_ERR(handle);
+		pass_to_user(handle);
+		data.allocation.handle = handle->id;
+
+		cleanup_handle = handle;
+		break;
+	}
+	case ION_IOC_FREE:
+	{
+		struct ion_handle *handle;
+
+		mutex_lock(&client->lock);
+		handle = ion_handle_get_by_id_nolock(client,
+						     data.handle.handle);
+		if (IS_ERR(handle)) {
+			mutex_unlock(&client->lock);
+			return PTR_ERR(handle);
+		}
+		user_ion_free_nolock(client, handle);
+		ion_handle_put_nolock(handle);
+		mutex_unlock(&client->lock);
+		break;
+	}
+	case ION_IOC_SHARE:
+	case ION_IOC_MAP:
+	{
+		struct ion_handle *handle;
+
+		handle = ion_handle_get_by_id(client, data.handle.handle);
+		if (IS_ERR(handle))
+			return PTR_ERR(handle);
+		data.fd.fd = ion_share_dma_buf_fd(client, handle);
+		ion_handle_put(handle);
+		if (data.fd.fd < 0)
+			ret = data.fd.fd;
+		break;
+	}
+	case ION_IOC_IMPORT:
+	{
+		struct ion_handle *handle;
+
+		handle = ion_import_dma_buf_fd(client, data.fd.fd);
+		if (IS_ERR(handle)) {
+			ret = PTR_ERR(handle);
+		} else {
+			handle = pass_to_user(handle);
+			if (IS_ERR(handle))
+				ret = PTR_ERR(handle);
+			else
+				data.handle.handle = handle->id;
+		}
+		break;
+	}
+	case ION_IOC_SYNC:
+	{
+		ret = ion_sync_for_device(client, data.fd.fd);
+		break;
+	}
+	case ION_IOC_CUSTOM:
+	{
+		if (!dev->custom_ioctl)
+			return -ENOTTY;
+		ret = dev->custom_ioctl(client, data.custom.cmd,
+						data.custom.arg);
+		break;
+	}
+	case ION_IOC_CLEAN_CACHES:
+		return client->dev->custom_ioctl(client,
+						ION_IOC_CLEAN_CACHES, arg);
+	case ION_IOC_INV_CACHES:
+		return client->dev->custom_ioctl(client,
+						ION_IOC_INV_CACHES, arg);
+	case ION_IOC_CLEAN_INV_CACHES:
+		return client->dev->custom_ioctl(client,
+						ION_IOC_CLEAN_INV_CACHES, arg);
+	default:
+		return -ENOTTY;
+	}
+
+	if (dir & _IOC_READ) {
+		if (copy_to_user((void __user *)arg, &data, _IOC_SIZE(cmd))) {
+			if (cleanup_handle) {
+				mutex_lock(&client->lock);
+				user_ion_free_nolock(client, cleanup_handle);
+				ion_handle_put_nolock(cleanup_handle);
+				mutex_unlock(&client->lock);
+			}
+			return -EFAULT;
+		}
+	}
+	if (cleanup_handle)
+		ion_handle_put(cleanup_handle);
+	return ret;
 }
 
 static int ion_release(struct inode *inode, struct file *file)
