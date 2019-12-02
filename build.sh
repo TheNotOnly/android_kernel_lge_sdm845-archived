@@ -14,7 +14,7 @@ echo ""
 read -p "Please choose an option: " -e -i 2 option
 echo ""
 
-read -p "Please specify number of cores: " -e -i 5 cores
+read -p "Please specify number of cores: " -e -i auto
 echo ""
 
 else
@@ -22,6 +22,12 @@ else
 option=$1
 cores=$2
 
+fi
+
+if [ "$cores" == "auto" ]
+then
+cores=$(ncpus)+1
+cores=$((cores+1))
 fi
 
 echo "Setting up working environment"
