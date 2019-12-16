@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1  
+      - name: Download Toolchain
+        run: wget http://releases.linaro.org/components/toolchain/binaries/6.5-2018.12/aarch64-linux-gnu/gcc-linaro-6.5.0-2018.12-x86_64_aarch64-linux-gnu.tar.xz
+      - name: Extract Toolchian
+        run: tar -xvf gcc-linaro-6.5.0-2018.12-x86_64_aarch64-linux-gnu.tar.xz
+      - name: pwd
+        run: pwd && ls
+      - name: Clean Working Enviroment
+        run: rm -rf out
+      - name: make defconfig
+        run: make O=out judyln_lao_com-perf_defconfig ARCH=arm64
+      - name: make
+        run: make O=out -j3 ARCH=arm64 DTC_EXT=dtc CROSS_COMPILE=../gcc-linaro-6.5.0-2018.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
