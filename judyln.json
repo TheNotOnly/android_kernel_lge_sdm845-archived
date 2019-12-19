@@ -1,0 +1,16 @@
+{
+  "name": "<b><font color=\"#FFFFFF\">TNO Kernel</font></b>",
+  "short_description": "A kernel by <b>TheNotOnly</b>",
+  "long_description": "",
+  "logo": "",
+  "xda": "https://forum.xda-developers.com/lg-g7-thinq/development/kernel-t4021029",
+  "github": "https://github.com/TheNotOnly/android_kernel_lge_sdm845",
+  "features": [
+    "Version 4.9.xx",
+    "Test"
+  ],
+  "downloads": [
+    "Test",
+    "Test"
+  ]
+}
