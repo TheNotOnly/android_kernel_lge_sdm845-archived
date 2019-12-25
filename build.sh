@@ -122,12 +122,13 @@ case $option in
         echo $pw | sudo -S ./repackimg.sh
         rm split_img/boot.img-zImage
         mv image-new.img ../releases/TNOKernel-v$version.img
+        cd ..
 
         cp out/arch/arm64/boot/Image.gz-dtb anykernel3/
         cd anykernel3
         zip -r9 TNOKernel-v$version.zip * -x .git README.md *placeholder
         mv TNOKernel-v$version.zip ../releases
         rm Image.gz-dtb
-
+	cd ..
 esac
 
