@@ -2340,7 +2340,7 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
 	spin_lock_irqsave(&dwc->lock, flags);
 	dwc->gadget_driver = NULL;
 #ifdef CONFIG_LGE_USB
-	trace_printk("[F: %s]: %p, %pF\n", __func__, dwc, (void *)__builtin_return_address(0));
+	//trace_printk("[F: %s]: %p, %pF\n", __func__, dwc, (void *)__builtin_return_address(0));
 #endif
 	spin_unlock_irqrestore(&dwc->lock, flags);
 
@@ -2848,7 +2848,7 @@ static void dwc3_disconnect_gadget(struct dwc3 *dwc)
 
 	if (dwc->gadget_driver && dwc->gadget_driver->disconnect) {
 #ifdef CONFIG_LGE_USB
-		trace_printk("[F: %s]: %p\n", __func__, dwc);
+		//trace_printk("[F: %s]: %p\n", __func__, dwc);
 #endif
 		gadget_driver = dwc->gadget_driver;
 		spin_unlock(&dwc->lock);
