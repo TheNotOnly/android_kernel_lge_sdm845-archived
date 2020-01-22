@@ -668,6 +668,7 @@ int afe_get_port_type(u16 port_id)
 	case INT_BT_A2DP_RX:
 	case INT_FM_RX:
 	case VOICE_PLAYBACK_TX:
+	case VOICE_PLAYBACK_DL_TX:
 	case VOICE2_PLAYBACK_TX:
 	case RT_PROXY_PORT_001_RX:
 	case AUDIO_PORT_ID_I2S_RX:
@@ -868,6 +869,7 @@ int afe_sizeof_cfg_cmd(u16 port_id)
 		ret_size = SIZEOF_CFG_CMD(afe_param_id_slimbus_cfg);
 		break;
 	case VOICE_PLAYBACK_TX:
+	case VOICE_PLAYBACK_DL_TX:
 	case VOICE2_PLAYBACK_TX:
 	case VOICE_RECORD_RX:
 	case VOICE_RECORD_TX:
@@ -4114,6 +4116,7 @@ static int __afe_port_start(u16 port_id, union afe_port_config *afe_config,
 		cfg_type = AFE_PARAM_ID_HDMI_CONFIG;
 		break;
 	case VOICE_PLAYBACK_TX:
+	case VOICE_PLAYBACK_DL_TX:
 	case VOICE2_PLAYBACK_TX:
 	case VOICE_RECORD_RX:
 	case VOICE_RECORD_TX:
@@ -4336,6 +4339,7 @@ int afe_get_port_index(u16 port_id)
 	case VOICE_RECORD_RX: return IDX_VOICE_RECORD_RX;
 	case VOICE_RECORD_TX: return IDX_VOICE_RECORD_TX;
 	case VOICE_PLAYBACK_TX: return IDX_VOICE_PLAYBACK_TX;
+	case VOICE_PLAYBACK_DL_TX: return IDX_VOICE_RECORD_RX;
 	case VOICE2_PLAYBACK_TX: return IDX_VOICE2_PLAYBACK_TX;
 	case SLIMBUS_0_RX: return IDX_SLIMBUS_0_RX;
 	case SLIMBUS_0_TX: return IDX_SLIMBUS_0_TX;
@@ -6348,6 +6352,7 @@ int afe_validate_port(u16 port_id)
 	case VOICE_RECORD_RX:
 	case VOICE_RECORD_TX:
 	case VOICE_PLAYBACK_TX:
+	case VOICE_PLAYBACK_DL_TX:
 	case VOICE2_PLAYBACK_TX:
 	case SLIMBUS_0_RX:
 	case SLIMBUS_0_TX:
