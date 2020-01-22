@@ -48,6 +48,9 @@
 #define MAX_SSR_WAIT_ITERATIONS 100
 #define MAX_SSR_PROTECT_LOG (16)
 
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+
 static atomic_t ssr_protect_entry_count;
 
 /**
