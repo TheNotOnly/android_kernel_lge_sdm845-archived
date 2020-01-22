@@ -5028,6 +5028,7 @@ static int msm_get_pinctrl(struct platform_device *pdev)
 		goto err;
 	}
 	pinctrl_info->curr_state = STATE_DISABLE;
+	atomic_set(&pinctrl_ref_count, 0);
 
 	return 0;
 
@@ -5232,9 +5233,9 @@ static int sdm845_tdm_snd_startup(struct snd_pcm_substream *substream)
 	pr_debug("%s enter cpu_dai->id:%d\n", __func__, cpu_dai->id);
 	if (cpu_dai->id == AFE_PORT_ID_TERTIARY_TDM_RX)
 		ret = msm_set_pinctrl(pinctrl_info, STATE_TDM_ACTIVE);
-	if (ret)
-		pr_err("%s: TDM TLMM pinctrl set failed with %d\n",
-			__func__, ret);
+		if (ret)
+			pr_err("%s: TDM TLMM pinctrl set failed with %d\n",
+				__func__, ret);
 #else
 	/* currently only supporting TDM_RX_0 and TDM_TX_0 */
 	if ((cpu_dai->id == AFE_PORT_ID_QUATERNARY_TDM_RX) ||
@@ -5263,9 +5264,9 @@ static void sdm845_tdm_snd_shutdown(struct snd_pcm_substream *substream)
 	pr_debug("%s enter cpu_dai->id:%d\n", __func__, cpu_dai->id);
 	if (cpu_dai->id == AFE_PORT_ID_TERTIARY_TDM_RX)
 		ret = msm_set_pinctrl(pinctrl_info, STATE_TDM_DISABLE);
-	if (ret)
-		pr_err("%s: TDM TLMM pinctrl set failed with %d\n",
-			__func__, ret);
+		if (ret)
+			pr_err("%s: TDM TLMM pinctrl set failed with %d\n",
+				__func__, ret);
 #else
 	/* currently only supporting TDM_RX_0 and TDM_TX_0 */
 	if ((cpu_dai->id == AFE_PORT_ID_QUATERNARY_TDM_RX) ||
