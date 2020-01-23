@@ -3964,14 +3964,12 @@ typedef struct {
  * @enable: Enable/Disable Thermal mitigation
  * @dc: DC
  * @dc_per_event: DC per event
- * @num_thermal_conf: Number of thermal configurations to be sent
  * @tt_level_config: TT level config params
  */
 struct thermal_mitigation_params {
 	uint32_t enable;
 	uint32_t dc;
 	uint32_t dc_per_event;
-	uint8_t num_thermal_conf;
 	tt_level_config levelconf[THERMAL_LEVELS];
 };
 
@@ -5313,7 +5311,6 @@ typedef enum {
 	wmi_sar_get_limits_event_id,
 	wmi_roam_scan_stats_event_id,
 	wmi_wlan_sar2_result_event_id,
-	wmi_roam_pmkid_request_event_id,
 	wmi_events_max,
 } wmi_conv_event_id;
 
@@ -7425,10 +7422,9 @@ struct action_wakeup_set_param {
  * @WMI_ACTION_OUI_ITO_EXTENSION: for extending inactivity time of station
  * @WMI_ACTION_OUI_CCKM_1X1: for TX with CCKM 1x1 only
  * @WMI_ACTION_OUI_ITO_ALTERNATE: for alternate inactivity time of station
- * @WMI_ACTION_OUI_SWITCH_TO_11N_MODE: for switching to 11n mode connection
- * @WMI_ACTION_OUI_CONNECT_1x1_WITH_1_CHAIN: for 1x1 connection with 1 Chain
- * @WMI_ACTION_OUI_DISABLE_AGGRESSIVE_EDCA: disable aggressive EDCA with the ap
- * @WMI_ACTION_OUI_MAXIMUM_ID: maximum number of action oui types
+ * WMI_ACTION_OUI_SWITCH_TO_11N_MODE: for switching to 11n mode connection
+ * WMI_ACTION_OUI_CONNECT_1x1_WITH_1_CHAIN: for 1x1 connection with 1 Chain
+ * @WMI_ACTION_OUI_MAXIMUM_ID: maximun number of action oui types
  */
 enum wmi_action_oui_id {
 	WMI_ACTION_OUI_CONNECT_1X1 = 0,
@@ -7437,8 +7433,7 @@ enum wmi_action_oui_id {
 	WMI_ACTION_OUI_ITO_ALTERNATE = 3,
 	WMI_ACTION_OUI_SWITCH_TO_11N_MODE = 4,
 	WMI_ACTION_OUI_CONNECT_1x1_WITH_1_CHAIN = 5,
-	WMI_ACTION_OUI_DISABLE_AGGRESSIVE_EDCA = 6,
-	WMI_ACTION_OUI_MAXIMUM_ID = 7,
+	WMI_ACTION_OUI_MAXIMUM_ID = 6,
 };
 
 /**
