@@ -6689,7 +6689,7 @@ static int __wlan_hdd_cfg80211_wifi_logger_get_ring_data(struct wiphy *wiphy,
 				WLAN_LOG_REASON_CODE_UNUSED,
 				true, false);
 		if (QDF_STATUS_SUCCESS != status) {
-			hdd_debug("Failed to trigger bug report");
+			hdd_err("Failed to trigger bug report");
 			return -EINVAL;
 		}
 	} else {
@@ -14854,8 +14854,6 @@ static int __wlan_hdd_cfg80211_change_iface(struct wiphy *wiphy,
 		pRoamProfile = &pWextState->roamProfile;
 		LastBSSType = pRoamProfile->BSSType;
 
-		hdd_thermal_mitigation_disable(pHddCtx);
-
 		switch (type) {
 		case NL80211_IFTYPE_STATION:
 		case NL80211_IFTYPE_P2P_CLIENT:
@@ -14992,7 +14990,6 @@ done:
 	if (pAdapter->device_mode == QDF_STA_MODE) {
 		hdd_debug("Sending Lpass mode change notification");
 		hdd_lpass_notify_mode_change(pAdapter);
-		hdd_thermal_mitigation_enable(pHddCtx);
 	}
 
 	EXIT();
@@ -16528,6 +16525,8 @@ int wlan_hdd_cfg80211_pmksa_candidate_notify(hdd_adapter_t *adapter,
 					     int index, bool preauth)
 {
 	struct net_device *dev = adapter->dev;
+	hdd_context_t *hdd_ctx = (hdd_context_t *) adapter->pHddCtx;
+	struct pmkid_mode_bits pmkid_modes;
 
 	ENTER();
 	hdd_debug("is going to notify supplicant of:");
@@ -16537,13 +16536,14 @@ int wlan_hdd_cfg80211_pmksa_candidate_notify(hdd_adapter_t *adapter,
 		return -EINVAL;
 	}
 
-	/*
-	 * Supplicant should be notified regardless the PMK caching or OKC
-	 * is enabled in firmware or not
-	 */
-	hdd_debug(MAC_ADDRESS_STR, MAC_ADDR_ARRAY(roam_info->bssid.bytes));
-	cfg80211_pmksa_candidate_notify(dev, index, roam_info->bssid.bytes,
-					preauth, GFP_KERNEL);
+	hdd_get_pmkid_modes(hdd_ctx, &pmkid_modes);
+	if (pmkid_modes.fw_okc) {
+		hdd_debug(MAC_ADDRESS_STR,
+		       MAC_ADDR_ARRAY(roam_info->bssid.bytes));
+		cfg80211_pmksa_candidate_notify(dev, index,
+						roam_info->bssid.bytes,
+						preauth, GFP_KERNEL);
+	}
 	return 0;
 }
 
@@ -16959,13 +16959,6 @@ static int wlan_hdd_cfg80211_connect_start(hdd_adapter_t *pAdapter,
 	pRoamProfile = &pWextState->roamProfile;
 	qdf_mem_zero(&hdd_sta_ctx->conn_info.conn_flag,
 		     sizeof(hdd_sta_ctx->conn_info.conn_flag));
-
-	/*
-	 * Reset the ptk, gtk status flags to avoid using old/previous
-	 * connection status.
-	 */
-	hdd_sta_ctx->conn_info.gtk_installed = false;
-	hdd_sta_ctx->conn_info.ptk_installed = false;
 
 	if (pRoamProfile) {
 		hdd_station_ctx_t *pHddStaCtx;
