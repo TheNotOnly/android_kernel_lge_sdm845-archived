@@ -136,9 +136,6 @@ static int one_hundred = 100;
 static int max_swappiness = 200;
 #endif
 static int __maybe_unused one_thousand = 1000;
-#ifdef CONFIG_SCHED_WALT
-static int two_million = 2000000;
-#endif
 #ifdef CONFIG_PRINTK
 static int ten_thousand = 10000;
 #endif

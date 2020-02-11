@@ -12,7 +12,7 @@
 #include "walt.h"
 
 #ifdef CONFIG_IRQ_TIME_ACCOUNTING
-
+#pragma GCC diagnostic ignored "-Wunused-variable"
 /*
  * There are no locks covering percpu hardirq/softirq time.
  * They are only modified in vtime_account, on corresponding CPU
