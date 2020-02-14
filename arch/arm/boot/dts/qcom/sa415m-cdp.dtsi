@@ -16,10 +16,6 @@
 	status = "okay";
 };
 
-&qcom_seecom {
-	status = "okay";
-};
-
 &usb {
 	status = "okay";
 	qcom,connector-type-uAB;
@@ -31,18 +27,4 @@
 
 &smb138x {
 	status = "disabled";
-};
-
-&thermal_zones {
-	mdm-core-step {
-		trips {
-			mdm-step-trip-0 {
-				temperature = <105000>;
-			};
-
-			mdm-step-trip-1 {
-				temperature = <115000>;
-			};
-		};
-	};
 };
