@@ -128,17 +128,10 @@ led_flash_rear: qcom,camera-flash@0 {
 
 Example:
 
-flash0: qcom,camera-flash {
+led_flash0: qcom,camera-led-flash {
 		cell-index = <0>;
-		compatible = "qcom,qm215-gpio-flash";
-		qcom,flash-type = <2>;
-		gpios = <&tlmm 34 0>;
-			<&tlmm 33 0>;
-		qcom,gpio-req-tbl-num = <0 1>;
-		qcom,gpio-req-tbl-flags = <1 0>;
-		qcom,gpio-flash-en = <0>;
-		qcom,gpio-flash-now = <1>;
-		qcom,gpio-req-tbl-label = "CAM_FLASH",
-			"CAM_TORCH";
-		status = "ok";
+		compatible = "qcom,camera-led-flash";
+		qcom,flash-type = <3>;
+		qcom,flash-source = <&flash_BC847>;
+		qcom,torch-source = <&flash_BC847>;
 	};

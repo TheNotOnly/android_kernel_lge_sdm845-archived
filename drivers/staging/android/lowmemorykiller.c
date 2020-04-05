@@ -1437,7 +1437,6 @@ kill:
 		lowmem_print(3, "reclaimed cnt = %d, reclaim cont = %d, min oom score= %hd\n",
 				reclaimed_cnt, reclaimable_cnt, min_score_adj);
 #endif
-
 		rcu_read_unlock();
 		/* give the system time to free up the memory */
 		msleep_interruptible(20);

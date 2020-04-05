@@ -63,7 +63,6 @@ static phys_addr_t tcsr_boot_misc_detect;
 static void scm_disable_sdi(void);
 static bool force_warm_reboot;
 #ifndef CONFIG_LGE_HANDLE_PANIC
-
 #ifdef CONFIG_QCOM_DLOAD_MODE
 /* Runtime could be only changed value once.
  * There is no API from TZ to re-enable the registers.

@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017, 2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -13,11 +12,12 @@
 
 /dts-v1/;
 
-#include "msm8953.dtsi"
-#include "msm8953-mtp.dtsi"
+#include "msm8905-qrd-skub.dtsi"
+#include "msm8905-512mb-memory_qseev4.dtsi"
+#include "msm8909-gpu-qhd.dtsi"
 
 / {
-	model = "Qualcomm Technologies, Inc. msm8953 + NO PMI SOC";
-	compatible = "qcom,msm8953";
-	qcom,pmic-id = <0x010016 0x0 0x0 0x0>;
+	model = "Qualcomm Technologies, Inc. MSM8905 QRD SKUB QSEEV4";
+	compatible = "qcom,msm8909-qrd", "qcom,msm8909", "qcom,qrd";
+	qcom,board-id = <0x1010b 0x100>;
 };
