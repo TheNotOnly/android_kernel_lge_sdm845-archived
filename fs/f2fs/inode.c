@@ -789,8 +789,6 @@ void f2fs_handle_failed_inode(struct inode *inode)
 	}
 
 out:
-	f2fs_remove_inode_page(inode);
-
 	f2fs_unlock_op(sbi);
 
 	/* iput will drop the inode object */
