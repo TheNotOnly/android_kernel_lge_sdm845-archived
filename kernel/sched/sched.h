@@ -1883,7 +1883,7 @@ static inline unsigned long capacity_orig_of(int cpu)
 	return cpu_rq(cpu)->cpu_capacity_orig;
 }
 
-extern unsigned int walt_disabled;
+extern bool walt_disabled;
 
 static inline unsigned long task_util(struct task_struct *p)
 {
@@ -2342,10 +2342,7 @@ static inline u64 irq_time_read(int cpu)
 u64 sched_ktime_clock(void);
 void note_task_waking(struct task_struct *p, u64 wallclock);
 #else /* CONFIG_SCHED_WALT */
-static inline u64 sched_ktime_clock(void)
-{
-	return 0;
-}
+#define sched_ktime_clock ktime_get_ns
 static inline void note_task_waking(struct task_struct *p, u64 wallclock) { }
 #endif /* CONFIG_SCHED_WALT */
 
