@@ -15,7 +15,7 @@
 
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
-#include <linux/msm_drm_notify.h>
+#include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/moduleparam.h>
 #include <linux/slab.h>
@@ -36,10 +36,10 @@ module_param(input_boost_freq_hp, uint, 0644);
 module_param(input_boost_duration, short, 0644);
 
 /* Available bits for boost_drv state */
-#define SCREEN_AWAKE		BIT(0)
-#define INPUT_BOOST		BIT(1)
-#define WAKE_BOOST		BIT(2)
-#define MAX_BOOST		BIT(3)
+#define SCREEN_AWAKE		(1U << 0)
+#define INPUT_BOOST		(1U << 1)
+#define WAKE_BOOST		(1U << 2)
+#define MAX_BOOST		(1U << 3)
 
 struct boost_drv {
 	struct workqueue_struct *wq;
@@ -51,8 +51,8 @@ struct boost_drv {
 	struct notifier_block fb_notif;
 	unsigned long max_boost_expires;
 	atomic_t max_boost_dur;
-	atomic_t state;
 	spinlock_t lock;
+	u32 state;
 };
 
 static struct boost_drv *boost_drv_g;
@@ -75,17 +75,27 @@ static u32 get_min_freq(struct boost_drv *b, u32 cpu)
 
 static u32 get_boost_state(struct boost_drv *b)
 {
-	return atomic_read(&b->state);
+	u32 state;
+
+	spin_lock(&b->lock);
+	state = b->state;
+	spin_unlock(&b->lock);
+
+	return state;
 }
 
 static void set_boost_bit(struct boost_drv *b, u32 state)
 {
-	atomic_or(state, &b->state);
+	spin_lock(&b->lock);
+	b->state |= state;
+	spin_unlock(&b->lock);
 }
 
 static void clear_boost_bit(struct boost_drv *b, u32 state)
 {
-	atomic_andnot(state, &b->state);
+	spin_lock(&b->lock);
+	b->state &= ~state;
+	spin_unlock(&b->lock);
 }
 
 static void update_online_cpu_policy(void)
@@ -249,15 +259,15 @@ static int fb_notifier_cb(struct notifier_block *nb,
 	unsigned long action, void *data)
 {
 	struct boost_drv *b = container_of(nb, typeof(*b), fb_notif);
-	struct msm_drm_notifier *evdata = data;
-	int blank = *(int *)evdata->data;
+	struct fb_event *evdata = data;
+	int *blank = evdata->data;
 
 	/* Parse framebuffer blank events as soon as they occur */
-	if (action != MSM_DRM_EARLY_EVENT_BLANK)
+	if (action != FB_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
 
 	/* Boost when the screen turns on and unboost when it turns off */
-	if (blank == MSM_DRM_BLANK_UNBLANK) {
+	if (*blank == FB_BLANK_UNBLANK) {
 		set_boost_bit(b, SCREEN_AWAKE);
 		__cpu_input_boost_kick_max(b, CONFIG_WAKE_BOOST_DURATION_MS);
 	} else {
@@ -380,7 +390,7 @@ static int __init cpu_input_boost_init(void)
 	INIT_DELAYED_WORK(&b->input_unboost, input_unboost_worker);
 	INIT_WORK(&b->max_boost, max_boost_worker);
 	INIT_DELAYED_WORK(&b->max_unboost, max_unboost_worker);
-	atomic_set(&b->state, 0);
+	b->state = SCREEN_AWAKE;
 
 	b->cpu_notif.notifier_call = cpu_notifier_cb;
 	ret = cpufreq_register_notifier(&b->cpu_notif, CPUFREQ_POLICY_NOTIFIER);
@@ -398,7 +408,7 @@ static int __init cpu_input_boost_init(void)
 
 	b->fb_notif.notifier_call = fb_notifier_cb;
 	b->fb_notif.priority = INT_MAX;
-	ret = msm_drm_register_client(&b->fb_notif);
+	ret = fb_register_client(&b->fb_notif);
 	if (ret) {
 		pr_err("Failed to register fb notifier, err: %d\n", ret);
 		goto unregister_handler;
